@@ -213,8 +213,9 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 </div>
 <div class="toast" id="toast"></div>
 <script>
-var LS_URL='monfocus_script_url', LS_ME='monfocus_me';
+var LS_URL='monfocus_script_url', LS_ME='monfocus_me', LS_TOKEN='monfocus_token';
 var SCRIPT_URL=localStorage.getItem(LS_URL)||'';
+var TOKEN=localStorage.getItem('monfocus_token')||'';
 var ME=localStorage.getItem(LS_ME)||'Guillaume';
 var projects=[], actions=[], params={statuts:[],importances:[],etiquettes:[]};
 var currentPage='home', editingActionId=null, editingProjectId=null;
@@ -257,8 +258,8 @@ function jsonp(url) {
     document.head.appendChild(s);
   });
 }
-function apiGet(a){return jsonp(SCRIPT_URL+'?action='+a);}
-function apiSave(a,d){return jsonp(SCRIPT_URL+'?action='+a+'&data='+encodeURIComponent(JSON.stringify(d)));}
+function apiGet(a){return jsonp(SCRIPT_URL+'?action='+a+'&token='+encodeURIComponent(TOKEN));}
+function apiSave(a,d){return jsonp(SCRIPT_URL+'?action='+a+'&token='+encodeURIComponent(TOKEN)+'&data='+encodeURIComponent(JSON.stringify(d)));}
 
 function setSyncStatus(state,label){
   var btn=document.getElementById('sync-btn'), dot=document.getElementById('sync-dot');
@@ -300,9 +301,10 @@ function scheduleSave(){
 function saveScriptUrl(){
   var url=document.getElementById('cfg-url').value.trim();
   var me=document.getElementById('cfg-me').value.trim();
+  var tok=document.getElementById('cfg-token').value.trim();
   if(!url)return;
-  SCRIPT_URL=url; if(me)ME=me;
-  localStorage.setItem(LS_URL,url); localStorage.setItem(LS_ME,ME);
+  SCRIPT_URL=url; if(me)ME=me; if(tok)TOKEN=tok;
+  localStorage.setItem(LS_URL,url); localStorage.setItem(LS_ME,ME); localStorage.setItem(LS_TOKEN,TOKEN);
   document.getElementById('config-banner').classList.add('hidden');
   updateUser(); syncAll();
 }
@@ -350,6 +352,7 @@ function renderHome(){
     '<span class="config-label">⚙ Configuration</span>'+
     '<input id="cfg-me" placeholder="Ton prénom" value="'+esc(ME)+'" style="max-width:160px">'+
     '<input id="cfg-url" placeholder="URL Apps Script…">'+
+    '<input id="cfg-token" placeholder="Token secret (ex: fsi2026secret)" value="'+esc(TOKEN)+'">'+
     '<button class="btn btn-primary btn-sm" onclick="saveScriptUrl()">Connecter</button>'+
     '</div>';
   var mine=actions.filter(function(a){return a.responsable===ME&&a.statut!=='done'&&a.statut!=='cancel';});
