@@ -213,9 +213,8 @@ body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans
 </div>
 <div class="toast" id="toast"></div>
 <script>
-var LS_URL='monfocus_script_url', LS_ME='monfocus_me', LS_TOKEN='monfocus_token';
+var LS_URL='monfocus_script_url', LS_ME='monfocus_me';
 var SCRIPT_URL=localStorage.getItem(LS_URL)||'';
-var TOKEN=localStorage.getItem('monfocus_token')||'';
 var ME=localStorage.getItem(LS_ME)||'Guillaume';
 var projects=[], actions=[], params={statuts:[],importances:[],etiquettes:[]};
 var currentPage='home', editingActionId=null, editingProjectId=null;
@@ -246,25 +245,36 @@ var DEFAULT_ETIQUETTES=[
 ];
 params.statuts=DEFAULT_STATUTS; params.importances=DEFAULT_IMPORTANCES; params.etiquettes=DEFAULT_ETIQUETTES;
 
-// API via JSONP (seule méthode compatible Apps Script + GitHub Pages)
+// JSONP - identique à la v2 qui fonctionnait
 var cbCounter = 0;
 function jsonp(url) {
   return new Promise(function(resolve, reject) {
-    var name = '_mf_' + (++cbCounter);
-    var s = document.createElement('script');
-    var t = setTimeout(function() { cleanup(); reject(new Error('Timeout')); }, 15000);
-    window[name] = function(d) { cleanup(); d && d.error ? reject(new Error(d.error)) : resolve(d); };
-    function cleanup() { clearTimeout(t); delete window[name]; if (s.parentNode) s.parentNode.removeChild(s); }
-    s.onerror = function() { cleanup(); reject(new Error('Erreur réseau - vérifiez l URL et le token')); };
-    s.src = url + '&callback=' + name;
-    document.head.appendChild(s);
+    var cbName = '_mf_cb_' + (++cbCounter);
+    var script = document.createElement('script');
+    var timeout = setTimeout(function() {
+      cleanup();
+      reject(new Error('Timeout'));
+    }, 10000);
+    window[cbName] = function(data) {
+      cleanup();
+      if (data.error) reject(new Error(data.error));
+      else resolve(data);
+    };
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    script.onerror = function() { cleanup(); reject(new Error('Script error')); };
+    script.src = url + '&callback=' + cbName;
+    document.head.appendChild(script);
   });
 }
-function apiGet(a) {
-  return jsonp(SCRIPT_URL + '?action=' + a + '&token=' + encodeURIComponent(TOKEN));
+function apiGet(action) {
+  return jsonp(SCRIPT_URL + '?action=' + action);
 }
-function apiSave(a, d) {
-  return jsonp(SCRIPT_URL + '?action=' + a + '&token=' + encodeURIComponent(TOKEN) + '&data=' + encodeURIComponent(JSON.stringify(d)));
+function apiSave(action, data) {
+  return jsonp(SCRIPT_URL + '?action=' + action + '&data=' + encodeURIComponent(JSON.stringify(data)));
 }
 
 function setSyncStatus(state,label){
@@ -307,10 +317,9 @@ function scheduleSave(){
 function saveScriptUrl(){
   var url=document.getElementById('cfg-url').value.trim();
   var me=document.getElementById('cfg-me').value.trim();
-  var tok=document.getElementById('cfg-token').value.trim();
   if(!url)return;
-  SCRIPT_URL=url; if(me)ME=me; if(tok)TOKEN=tok;
-  localStorage.setItem(LS_URL,url); localStorage.setItem(LS_ME,ME); localStorage.setItem(LS_TOKEN,TOKEN);
+  SCRIPT_URL=url; if(me)ME=me;
+  localStorage.setItem(LS_URL,url); localStorage.setItem(LS_ME,ME);
   document.getElementById('config-banner').classList.add('hidden');
   updateUser(); syncAll();
 }
@@ -358,7 +367,6 @@ function renderHome(){
     '<span class="config-label">⚙ Configuration</span>'+
     '<input id="cfg-me" placeholder="Ton prénom" value="'+esc(ME)+'" style="max-width:160px">'+
     '<input id="cfg-url" placeholder="URL Apps Script…">'+
-    '<input id="cfg-token" placeholder="Token secret (ex: fsi2026secret)" value="'+esc(TOKEN)+'">'+
     '<button class="btn btn-primary btn-sm" onclick="saveScriptUrl()">Connecter</button>'+
     '</div>';
   var mine=actions.filter(function(a){return a.responsable===ME&&a.statut!=='done'&&a.statut!=='cancel';});
