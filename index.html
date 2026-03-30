@@ -287,16 +287,25 @@ function setSyncStatus(state,label){
 function syncAll(){
   if(!SCRIPT_URL)return;
   setSyncStatus('syncing','Chargement…');
-  apiGet('getAll').then(function(res){
+  apiGet('getAll').then(function(res)  {
     projects=res.projects||[];
     actions=res.actions||[];
     var p=res.params||[];
     var st=p.filter(function(x){return x.type==='statut';});
     var im=p.filter(function(x){return x.type==='importance';});
     var et=p.filter(function(x){return x.type==='etiquette';});
-    if(st.length) params.statuts=st;
-    if(im.length) params.importances=im;
-    if(et.length) params.etiquettes=et;
+    function fixIds(arr) {
+        return arr.map(function(x) {
+            if(x.id === null || x.id === undefined) {
+                // Reconstruire l'id depuis le cls (ex: "s-todo" -> "todo", "i-minor" -> "minor")
+                x.id = x.cls ? x.cls.replace(/^[a-z]+-/, '') : '';
+            }
+            return x;
+        });
+    }
+if(st.length) params.statuts=fixIds(st);
+if(im.length) params.importances=fixIds(im);
+if(et.length) params.etiquettes=fixIds(et);
     setSyncStatus('ok','Sync '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}));
     navigate(currentPage);
   }).catch(function(e){setSyncStatus('error','Erreur sync');console.error(e);});
