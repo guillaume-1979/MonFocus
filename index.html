@@ -246,25 +246,26 @@ var DEFAULT_ETIQUETTES=[
 ];
 params.statuts=DEFAULT_STATUTS; params.importances=DEFAULT_IMPORTANCES; params.etiquettes=DEFAULT_ETIQUETTES;
 
-// API via fetch POST (contourne les problèmes CORS/redirections JSONP)
-function apiCall(action, data) {
-  var body = { token: TOKEN, action: action };
-  if (data !== undefined) body.data = JSON.stringify(data);
-  return fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
-    redirect: 'follow'
-  }).then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }).then(function(d) {
-    if (d.error) throw new Error(d.error);
-    return d;
+// API via JSONP (seule méthode compatible Apps Script + GitHub Pages)
+var cbCounter = 0;
+function jsonp(url) {
+  return new Promise(function(resolve, reject) {
+    var name = '_mf_' + (++cbCounter);
+    var s = document.createElement('script');
+    var t = setTimeout(function() { cleanup(); reject(new Error('Timeout')); }, 15000);
+    window[name] = function(d) { cleanup(); d && d.error ? reject(new Error(d.error)) : resolve(d); };
+    function cleanup() { clearTimeout(t); delete window[name]; if (s.parentNode) s.parentNode.removeChild(s); }
+    s.onerror = function() { cleanup(); reject(new Error('Erreur réseau - vérifiez l URL et le token')); };
+    s.src = url + '&callback=' + name;
+    document.head.appendChild(s);
   });
 }
-function apiGet(a){ return apiCall(a); }
-function apiSave(a,d){ return apiCall(a, d); }
+function apiGet(a) {
+  return jsonp(SCRIPT_URL + '?action=' + a + '&token=' + encodeURIComponent(TOKEN));
+}
+function apiSave(a, d) {
+  return jsonp(SCRIPT_URL + '?action=' + a + '&token=' + encodeURIComponent(TOKEN) + '&data=' + encodeURIComponent(JSON.stringify(d)));
+}
 
 function setSyncStatus(state,label){
   var btn=document.getElementById('sync-btn'), dot=document.getElementById('sync-dot');
