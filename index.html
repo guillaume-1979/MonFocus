@@ -582,6 +582,21 @@ function openEditAction(id){
   buildActionForm(a);
   document.getElementById('modal-action').classList.remove('hidden');
 }
+
+function openNewActionForProject(projectId) {
+  editingActionId = null;
+  var pa = actions.filter(function(a){ return a.projectId == projectId; });
+  var lastAction = pa.length ? pa[pa.length - 1] : null;
+  buildActionForm({
+    statut: 'todo',
+    responsable: ME,
+    projectId: projectId,
+    dependsOn: lastAction ? lastAction.id : null
+  });
+  document.getElementById('modal-action-title').textContent = 'Nouvelle action';
+  document.getElementById('modal-action').classList.remove('hidden');
+}
+  
 function openNewAction(){
   editingActionId=null;
   buildActionForm({statut:'doing',responsable:ME});
