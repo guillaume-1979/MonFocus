@@ -451,7 +451,8 @@ function markDone(id){var a=actions.find(function(x){return x.id==id;});if(a){a.
 function renderProjects(){
   var c=document.getElementById('content');
   if(!projects.length){c.innerHTML='<div class="empty">Aucun projet. Crée le premier !</div>';return;}
-  c.innerHTML=projects.map(function(p){
+  c.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">';
+  c.innerHTML+=projects.map(function(p){
     var pa=actions.filter(function(a){return a.projectId==p.id;});
     var done=pa.filter(function(a){return a.statut==='done';}).length;
     var pct=pa.length?Math.round(done/pa.length*100):0;
@@ -470,12 +471,11 @@ function renderProjects(){
       '<div class="project-meta">'+etiq+(p.responsable?'<span style="font-size:11px;color:var(--text-3)">👤 '+esc(p.responsable)+'</span>':'')+
       (p.echeance?'<span style="font-size:11px;color:var(--text-3)">📅 '+fmtD(p.echeance)+'</span>':'')+
       '</div></div>'+
-      '<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div><span class="progress-pct">'+pct+'%</span></div>'+
       '<span class="chevron">▶</span>'+
       '<button class="btn btn-ghost btn-sm" style="margin-left:6px" onclick="event.stopPropagation();openEditProject('+p.id+')" title="Modifier">✏</button>'+
       '<button class="btn btn-primary btn-sm" style="margin-left:6px" onclick="event.stopPropagation();openNewActionForProject('+p.id+')" title="Ajouter une action">+ Action</button>'+
       '</div><div class="project-actions-wrap">'+actH+'</div></div>';
-  }).join('');
+  }).join('')+'</div>';
 }
 function toggleProject(id){document.getElementById('proj-'+id).classList.toggle('open');}
 
