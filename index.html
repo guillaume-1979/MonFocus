@@ -419,7 +419,7 @@ function renderHome(){
   var late=mine.filter(function(a){return a.echeance&&a.echeance<t;}).length;
   var blk=mine.filter(function(a){return a.statut==='blocked';}).length;
   // Bloc urgences
-  var urgent = mine.filter(function(a){return a.echeance && a.echeance <= t;});
+  var urgent = mine.filter(function(a){return a.echeance && String(a.echeance).slice(0,10) <= t;});
   var urgentHTML = '';
   if (urgent.length) {
     urgentHTML = '<div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:var(--r);padding:16px 18px;margin-bottom:20px;">' +
