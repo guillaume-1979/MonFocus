@@ -418,9 +418,18 @@ function renderHome(){
   var total=mine.length,crit=mine.filter(function(a){return a.importance==='critical';}).length;
   var late=mine.filter(function(a){return a.echeance&&a.echeance<t;}).length;
   var blk=mine.filter(function(a){return a.statut==='blocked';}).length;
-  var html=banner+'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">'+
-    sc(total,'Mes actions','var(--blue)')+sc(crit,'Critiques','var(--red)')+sc(late,'En retard','var(--amber)')+sc(blk,'Bloquées','var(--text-3)')+
-    '</div>';
+  // Bloc urgences
+  var urgent = mine.filter(function(a){return a.echeance && a.echeance <= t;});
+  var urgentHTML = '';
+  if (urgent.length) {
+    urgentHTML = '<div style="background:#FEF2F2;border:1.5px solid #FECACA;border-radius:var(--r);padding:16px 18px;margin-bottom:20px;">' +
+      '<div style="font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">⚠ Urgent — Aujourd\'hui et en retard</div>' +
+      urgent.map(function(a){return ar(a,t);}).join('') +
+      '</div>';
+  }
+  var html=banner+urgentHTML+'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">'+
+      sc(total,'Mes actions','var(--blue)')+sc(crit,'Critiques','var(--red)')+sc(late,'En retard','var(--amber)')+sc(blk,'Bloquées','var(--text-3)')+
+      '</div>';
   if(wd.length){html+='<div class="section-label">Avec échéance &nbsp;</div>';html+=wd.map(function(a){return ar(a,t);}).join('');}
   if(nd.length){html+='<div class="section-label" style="margin-top:16px">Sans échéance &nbsp;</div>';html+=nd.map(function(a){return ar(a,t);}).join('');}
   if(!mine.length)html+='<div class="empty">Aucune action en cours pour toi 🎉</div>';
