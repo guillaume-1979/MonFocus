@@ -274,7 +274,38 @@ function apiGet(action) {
   return jsonp(SCRIPT_URL + '?action=' + action);
 }
 function apiSave(action, data) {
-  return jsonp(SCRIPT_URL + '?action=' + action + '&data=' + encodeURIComponent(JSON.stringify(data)));
+  return new Promise(function(resolve, reject) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL;
+    form.target = '_mf_frame_' + (++cbCounter);
+    var iframe = document.createElement('iframe');
+    iframe.name = form.target;
+    iframe.style.display = 'none';
+    var inputAction = document.createElement('input');
+    inputAction.type = 'hidden';
+    inputAction.name = 'action';
+    inputAction.value = action;
+    var inputData = document.createElement('input');
+    inputData.type = 'hidden';
+    inputData.name = 'data';
+    inputData.value = JSON.stringify(data);
+    form.appendChild(inputAction);
+    form.appendChild(inputData);
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    var t = setTimeout(function() {
+      cleanup();
+      resolve({ ok: true }); // on considère OK après timeout
+    }, 8000);
+    iframe.onload = function() { cleanup(); resolve({ ok: true }); };
+    function cleanup() {
+      clearTimeout(t);
+      if (form.parentNode) form.parentNode.removeChild(form);
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }
+    form.submit();
+  });
 }
 
 function setSyncStatus(state,label){
