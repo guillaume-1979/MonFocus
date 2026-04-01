@@ -473,6 +473,7 @@ function renderProjects(){
       '<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div><span class="progress-pct">'+pct+'%</span></div>'+
       '<span class="chevron">▶</span>'+
       '<button class="btn btn-ghost btn-sm" style="margin-left:6px" onclick="event.stopPropagation();openEditProject('+p.id+')" title="Modifier">✏</button>'+
+      '<button class="btn btn-primary btn-sm" style="margin-left:6px" onclick="event.stopPropagation();openNewActionForProject('+p.id+')" title="Ajouter une action">+ Action</button>'+
       '</div><div class="project-actions-wrap">'+actH+'</div></div>';
   }).join('');
 }
