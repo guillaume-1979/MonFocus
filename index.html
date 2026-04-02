@@ -451,11 +451,9 @@ function markDone(id){var a=actions.find(function(x){return x.id==id;});if(a){a.
 function renderProjects(){
   var c=document.getElementById('content');
   if(!projects.length){c.innerHTML='<div class="empty">Aucun projet. Crée le premier !</div>';return;}
-  c.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;">';
-  c.innerHTML+=projects.map(function(p){
+  c.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-items:start;">'+
+  projects.map(function(p){
     var pa=actions.filter(function(a){return a.projectId==p.id;});
-    var done=pa.filter(function(a){return a.statut==='done';}).length;
-    var pct=pa.length?Math.round(done/pa.length*100):0;
     var etiq=(p.etiquettes||[]).map(function(eid){var e=getEtiq(eid);return e?badgeH(e):'';}).join('');
     var actH=pa.map(function(a){
       var s=getStatut(a.statut),imp=getImp(a.importance);
